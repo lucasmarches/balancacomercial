@@ -1,0 +1,193 @@
+import smtplib
+import requests
+from bs4 import BeautifulSoup
+from pyexcel_ods3 import get_data
+from pyexcel_ods3 import get_data
+
+site = requests.get('http://www.mdic.gov.br/index.php/comercio-exterior/estatisticas-de-comercio-exterior/balanca-comercial-brasileira-semanal')
+url1 = 'http://www.mdic.gov.br'
+
+sopa = BeautifulSoup(site.content, 'html.parser')			#Busca o endereço para download da tabela
+menusemana = sopa.find('div', {'class': 'navega-area semanal'})
+links =[]
+for link in menusemana.find_all('a'):
+    links.append(link)
+url2 =links[1].get('href')
+urltotal = url1 + url2
+
+r = requests.get(urltotal)
+
+with open('/Users/Lucas/balanca3.ods', 'wb') as f:  		#Salva a tabela no computador onde preferir
+    f.write(r.content)
+
+arquivo = get_data('balanca2.ods') #importa o arquivo ODS, cada aba é um dicionário, a gente só precisa da primeira aba	
+balanca = arquivo['Bal_Mensal'] #pronto, separamos só a primeira aba
+
+
+dados = []	#limpa a tabela das linhas vazias
+for linha in balanca:
+    if len(linha) > 5:
+        dados.append(linha)
+
+mediaexporta = dados[3][3] #pega alguns dados que estão sempre no mesmo lugar nas tabelas
+mediaimporta = dados[3][5]
+mes = dados[3][0].split(' ')[0]
+
+semanas_saldo = []			#cria as listas que armazenarão os dados
+semanas_exporta =[]
+semanas_importa = []
+    
+for linha in dados:	#poe os dados semanais em seus respectivos objetos, assim como o dado anual e a variacao. Iterecao é necessária porque a tabela muda para esses dados
+    if linha[0] == '':
+        linha[0] = ''
+    elif linha[0][0] == '1':
+        semanas_saldo.append(float(linha[8]))
+        semanas_exporta.append(float(linha[2]))
+        semanas_importa.append(float(linha[4]))
+    elif linha[0][0] == '2':
+        semanas_saldo.append(float(linha[8]))
+        semanas_exporta.append(float(linha[2]))
+        semanas_importa.append(float(linha[4]))
+    elif linha[0][0] == '3':
+        semanas_saldo.append(float(linha[8]))
+        semanas_exporta.append(float(linha[2]))
+        semanas_importa.append(float(linha[4]))
+    elif linha[0][0] == '4':
+        semanas_saldo.append(float(linha[8]))
+        semanas_exporta.append(float(linha[2]))
+        semanas_importa.append(float(linha[4]))
+    elif linha[0][0] == '5':
+        semanas_saldo.append(float(linha[8]))
+        semanas_exporta.append(float(linha[2]))
+        semanas_importa.append(float(linha[4]))
+    elif linha[0] == 'Acumulado no ano':
+        ano_saldo = float(linha[8])
+        
+variacoes_exp = []		#Pega os dados das variações das médias diárias de exportação e importação. Como o lugar na tabela muda mas a ordem não, põe eles em uma lista
+variacoes_imp = []
+for linha in dados:
+    if linha[0][0:3] == 'Var':
+        variacoes_exp.append(linha[3])
+for linha in dados:
+    if linha[0][0:3] == 'Var':
+        variacoes_imp.append(linha[5])
+    
+variacaoexporta = variacoes_exp[0]
+mediaexportapassada = mediaexporta*100.0/(100.0+variacaoexporta)
+variacaoimporta = variacoes_imp[0]
+mediaimportapassada = mediaimporta*100.0/(100.0+variacaoimporta)
+ 
+mes_saldo = sum(semanas_saldo) 	#cria novos objetos a partir do que ja temos para publicacao e para o verificador de correção dos dados
+mes_exporta = sum(semanas_exporta)
+mes_importa = sum(semanas_importa)
+
+
+ultima_semana_saldo = semanas_saldo[-1]
+ultima_semana_exporta = semanas_exporta[-1]
+ultima_semana_importa = semanas_importa[-1]
+
+semanas = ['primeira', 'segunda', 'terceira', 'quarta', 'quinta']
+
+semana = semanas[semanas_saldo.index(ultima_semana_saldo)]
+                
+
+if round(mes_exporta, 2) != round(float(dados[3][2]), 2): #teste para ver se tudo está correto
+    print ('Algo deu errado em exportacao. Contate o suporte técnico. Não use esses dados antes de checá-los')
+	break
+if round(mes_importa, 2) != round(float(dados[3][4]), 2): 
+    print ('Algo deu errado em importa. Contate o suporte técnico. Não use esses dados antes de checá-los')
+	break
+if round(mes_saldo, 2) != round(float(dados[3][8]), 2):
+    print ('Algo deu errado no saldo. Contate o suporte técnico. Não use esses dados antes de checá-los')
+	break
+    
+ 
+def def_ou_sup(numero):	#define se é um déficit ou superávit
+    if numero > 0.0:
+        return 'superávit'
+    elif numero == 0.0:
+        return ''
+    else:
+        return 'déficit'
+
+def_ou_sup_mes = def_ou_sup(mes_saldo)
+
+def_ou_sup_ultima_semana = def_ou_sup(ultima_semana_saldo)
+
+def_ou_sup_ano_saldo = def_ou_sup(ano_saldo)
+
+def ordemgrandeza(numero):	#define a ordem de grandeza dos números
+    if numero < 0.0:
+        numero = numero *-1
+    if numero > 0.0:
+        if numero > 1.99 and numero < 1000.0:
+            return 'milhões'
+        elif numero > 999.99 and numero < 2000.0:
+            return 'bilhão'
+        elif numero > 1999.99:
+            return 'bilhões'
+        else:
+            return 'milhão'
+
+grandeza_ultima_semana_saldo = ordemgrandeza(ultima_semana_saldo)	
+grandeza_ultima_semana_exporta = ordemgrandeza(ultima_semana_exporta)
+grandeza_ultima_semana_importa = ordemgrandeza(ultima_semana_importa)
+grandeza_mes_saldo = ordemgrandeza(mes_saldo)
+grandeza_ano_saldo = ordemgrandeza(ano_saldo)
+grandeza_media_esteano_exporta = ordemgrandeza(mediaexporta)
+grandeza_media_anopassado_exporta = ordemgrandeza(mediaexportapassada)
+grandeza_media_esteano_importa = ordemgrandeza(mediaimporta)
+grandeza_media_anopassado_importa = ordemgrandeza(mediaimportapassada)
+
+def poenumnopadrao(numero, palavra):	#poe os números no padrão de publicação
+    if palavra == 'bilhão' or palavra == 'bilhões':
+        return round(numero/1000, 2)
+    else:
+        return round(numero, 2)
+
+
+def caiuousubiu(numero):	#define mais algumas palavras que serão usadas no texto final
+    if numero > 0:
+        return 'subiu'
+    else:
+        return 'caiu'
+
+def caiuousubiuplural(numero):
+    if numero > 0:
+        return 'avançaram'
+    else:
+        return 'recuaram'
+
+relacaomediaexportacao = caiuousubiu(variacaoexporta)
+relacaomediaimportacao = caiuousubiuplural(variacaoimporta)
+
+
+ultima_semana_saldo = poenumnopadrao(ultima_semana_saldo, grandeza_ultima_semana_saldo)		#Põe os objetos no formato de publicação
+ultima_semana_exporta = poenumnopadrao(ultima_semana_exporta, grandeza_ultima_semana_exporta)
+ultima_semana_importa = poenumnopadrao(ultima_semana_importa, grandeza_ultima_semana_importa)
+mes_saldo = poenumnopadrao(mes_saldo, grandeza_mes_saldo)
+ano_saldo = poenumnopadrao(ano_saldo, grandeza_ano_saldo)
+mediaexportapassada = poenumnopadrao(mediaexportapassada, grandeza_media_anopassado_exporta)
+mediaexporta = poenumnopadrao(mediaexporta, grandeza_media_esteano_exporta)
+mediaimportapassada = poenumnopadrao(mediaimportapassada, grandeza_media_anopassado_importa)
+mediaimporta = poenumnopadrao(mediaexporta, grandeza_media_esteano_importa)
+
+título = f'MDIC: Balança comercial fecha última semana com {def_ou_sup_ultima_semana} de US$ {ultima_semana_saldo} {grandeza_ultima_semana_saldo} \n'
+assinatura = 'Valor \n'
+paragrafo1 = f'A balança comercial brasileira teve um {def_ou_sup_ultima_semana} de US$ {ultima_semana_saldo} {grandeza_ultima_semana_saldo} na {semana} semana de {mes}, informou hoje o Ministério da Indústria, Comércio Exterior e Serviços (Mdic). Foram US$ {ultima_semana_exporta} {grandeza_ultima_semana_exporta} em exportações e US$ {ultima_semana_importa} {grandeza_ultima_semana_importa} em importações. \n'
+paragrafo2 = f'No mês, o {def_ou_sup_mes} acumulado é de US$ {mes_saldo} {grandeza_mes_saldo}. Já no ano, o {def_ou_sup_ano_saldo} é de US$ {ano_saldo} {grandeza_ano_saldo}. \n'
+paragrafo3 = f'A média diária das exportações {relacaomediaexportacao} {round(variacaoexporta, 2)}% no acumulado de {mes} quando comparada com o mesmo mês do último ano, passando de US$ {mediaexportapassada} {grandeza_media_anopassado_exporta} para US$ {mediaexporta} {grandeza_media_esteano_exporta}. \n'
+paragrafo4 = f'Já as importações {relacaomediaimportacao} {round(variacaoimporta,2)}% na mesma comparação levando em conta a média diária. Elas saíram de US$ {mediaimportapassada} {grandeza_media_anopassado_importa} para US$ {mediaimporta} {grandeza_media_esteano_importa}. \n'
+
+
+gmail_sender = ''		#Manda e-mail para a publicação a partir de uma conta no gmail
+gmail_password = ''
+assunto = 'Cobre balanca comercial'
+mensagem = paragrafo1 + paragrafo2 + paragrafo3 + paragrafo4
+mensagem = 'Subject: {}\n\n{}'.format(assunto, mensagem)
+server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+server.login(gmail_sender, gmail_password)
+para = ''
+corpo = mensagem.encode('utf8')
+server.sendmail(gmail_sender, para, corpo)
+server.quit()
