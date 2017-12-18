@@ -17,10 +17,10 @@ urltotal = url1 + url2
 
 r = requests.get(urltotal)
 
-with open('/Users/Lucas/balanca3.ods', 'wb') as f:  		#Salva a tabela no computador onde preferir
+with open('/Users/Lucas/balanca.ods', 'wb') as f:  		#Salva a tabela no computador onde preferir
     f.write(r.content)
 
-arquivo = get_data('balanca2.ods') #importa o arquivo ODS, cada aba é um dicionário, a gente só precisa da primeira aba	
+arquivo = get_data('balanca.ods') #importa o arquivo ODS, cada aba é um dicionário, a gente só precisa da primeira aba	
 balanca = arquivo['Bal_Mensal'] #pronto, separamos só a primeira aba
 
 
