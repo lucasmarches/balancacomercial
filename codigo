@@ -93,14 +93,10 @@ semana = semanas[semanas_saldo.index(ultima_semana_saldo)]
 
 if round(mes_exporta, 2) != round(float(dados[3][2]), 2): #teste para ver se tudo está correto
     print ('Algo deu errado em exportacao. Contate o suporte técnico. Não use esses dados antes de checá-los')
-	break
 if round(mes_importa, 2) != round(float(dados[3][4]), 2): 
     print ('Algo deu errado em importa. Contate o suporte técnico. Não use esses dados antes de checá-los')
-	break
 if round(mes_saldo, 2) != round(float(dados[3][8]), 2):
     print ('Algo deu errado no saldo. Contate o suporte técnico. Não use esses dados antes de checá-los')
-	break
-    
  
 def def_ou_sup(numero):	#define se é um déficit ou superávit
     if numero > 0.0:
