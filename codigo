@@ -168,7 +168,6 @@ mediaexporta = poenumnopadrao(mediaexporta, grandeza_media_esteano_exporta)
 mediaimportapassada = poenumnopadrao(mediaimportapassada, grandeza_media_anopassado_importa)
 mediaimporta = poenumnopadrao(mediaimporta, grandeza_media_esteano_importa)
 
-titulo = f'MDIC: Balança comercial fecha última semana com {def_ou_sup_ultima_semana} de US$ {ultima_semana_saldo} {grandeza_ultima_semana_saldo} \n'
 paragrafo1 = f'A balança comercial brasileira teve um {def_ou_sup_ultima_semana} de US$ {ultima_semana_saldo} {grandeza_ultima_semana_saldo} na {semana} semana de {mes}, informou hoje o Ministério da Indústria, Comércio Exterior e Serviços (Mdic). Foram US$ {ultima_semana_exporta} {grandeza_ultima_semana_exporta} em exportações e US$ {ultima_semana_importa} {grandeza_ultima_semana_importa} em importações. \n'
 paragrafo2 = f'No mês, o {def_ou_sup_mes} acumulado é de US$ {mes_saldo} {grandeza_mes_saldo}. Já no ano, o {def_ou_sup_ano_saldo} é de US$ {ano_saldo} {grandeza_ano_saldo}. \n'
 paragrafo3 = f'A média diária das exportações {relacaomediaexportacao} {round(variacaoexporta, 2)}% no acumulado de {mes} quando comparada com o mesmo mês do último ano, passando de US$ {mediaexportapassada} {grandeza_media_anopassado_exporta} para US$ {mediaexporta} {grandeza_media_esteano_exporta}. \n'
@@ -178,7 +177,7 @@ paragrafo4 = f'Já as importações {relacaomediaimportacao} {round(variacaoimpo
 gmail_sender = ''		#Manda e-mail para a publicação a partir de uma conta no gmail
 gmail_password = ''
 assunto = 'Cobre balanca comercial'
-mensagem = titulo + paragrafo1 + paragrafo2 + paragrafo3 + paragrafo4
+mensagem = paragrafo1 + paragrafo2 + paragrafo3 + paragrafo4
 mensagem = 'Subject: {}\n\n{}'.format(assunto, mensagem)
 server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
 server.login(gmail_sender, gmail_password)
