@@ -2,7 +2,6 @@ import smtplib
 import requests
 from bs4 import BeautifulSoup
 from pyexcel_ods3 import get_data
-from pyexcel_ods3 import get_data
 
 site = requests.get('http://www.mdic.gov.br/index.php/comercio-exterior/estatisticas-de-comercio-exterior/balanca-comercial-brasileira-semanal')
 url1 = 'http://www.mdic.gov.br'
